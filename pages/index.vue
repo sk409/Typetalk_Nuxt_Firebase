@@ -8,35 +8,55 @@
         class="py-2 text-center tool"
       >
         <v-btn text @click="clickTool(tool)">
-          <v-icon :style="toolIconStyle" :class="toolIconClass(tool)">{{tool.icon}}</v-icon>
+          <v-icon :style="toolIconStyle" :class="toolIconClass(tool)">
+            {{
+            tool.icon
+            }}
+          </v-icon>
         </v-btn>
       </div>
       <div class="h-100 tools-spacer"></div>
     </div>
     <div class="h-100 utility">
       <div v-if="toolname === 'topics'">
-        <TopicList></TopicList>
+        <TopicList :topic.sync="topic" :topics="topics"></TopicList>
       </div>
     </div>
-    <div class="h-100 messages white"></div>
+    <div v-if="topic" class="h-100 messages white position-relative">
+      <MessageList :messages="messages"></MessageList>
+      <MessageInput class="w-100 position-absolute left-0 bottom-0" @send="sendMessage"></MessageInput>
+    </div>
   </div>
 </template>
 
 <script>
 import firebase from "firebase";
+import MessageInput from "@/components/MessageInput.vue";
+import MessageList from "@/components/MessageList.vue";
 import TopicList from "@/components/TopicList.vue";
+import { messageRepository } from "@/assets/js/repositories.js";
+import {
+  messageService,
+  topicService,
+  userService
+} from "@/assets/js/services.js";
 let user = null;
 export default {
   layout: "auth",
   components: {
+    MessageInput,
+    MessageList,
     TopicList
   },
   data() {
     return {
+      messages: [],
       toolIconStyle: {
         "font-size": "30px"
       },
-      toolname: "topics"
+      toolname: "topics",
+      topic: null,
+      topics: []
     };
   },
   computed: {
@@ -67,10 +87,72 @@ export default {
       ];
     }
   },
-  created() {},
+  created() {
+    userService.current().then(u => {
+      user = u;
+      this.fetchTopics();
+    });
+  },
+  watch: {
+    topic() {
+      this.fetchMessages();
+    }
+  },
   methods: {
     clickTool(tool) {
       this.toolname = tool.name;
+    },
+    fetchMessages() {
+      if (!this.topic) {
+        return;
+      }
+      const messages = [];
+      firebase
+        .firestore()
+        .collection("messages")
+        .where("topicId", "==", this.topic.id)
+        .get()
+        .then(snapshot => {
+          if (snapshot.size === 0) {
+            return;
+          }
+          snapshot.forEach(message => {
+            messages.push(this.$convert(message));
+          });
+          const userIds = messages.map(message => message.userId);
+          return firebase
+            .firestore()
+            .collection("users")
+            .where("uid", "in", userIds)
+            .get();
+        })
+        .then(snapshot => {
+          if (!snapshot) {
+            return;
+          }
+          const users = {};
+          snapshot.forEach(doc => {
+            const user = this.$convert(doc);
+            users[user.uid] = user;
+          });
+          messages.forEach(message => {
+            message.user = users[message.userId];
+          });
+          this.messages = messages;
+        });
+    },
+    fetchTopics() {
+      topicService.findByUserId(user.id).then(topics => {
+        this.topics = topics;
+        messageService.findByTopicId(topics[0].id);
+      });
+    },
+    sendMessage(text) {
+      messageService.save(user.id, {
+        text,
+        topicId: this.topic.id,
+        userId: user.uid
+      });
     },
     toolClass(tool, index) {
       if (this.toolname === tool.name) {

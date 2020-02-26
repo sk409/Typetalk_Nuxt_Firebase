@@ -1,7 +1,7 @@
 <template>
   <div>
     <div class="align-center d-flex toolbar">
-      <v-btn icon small class="ml-auto white">
+      <v-btn icon small class="ml-auto white" @click="dialog = true">
         <v-icon>mdi-plus</v-icon>
       </v-btn>
       <v-btn icon small class="ml-2 mr-2 white">
@@ -15,23 +15,34 @@
       class="pa-2 text-center"
       @click="clickTopic(topic)"
     >
-      <span class="subtitle-1">{{topic.name}}</span>
+      <span class="subtitle-1">{{ topic.name }}</span>
     </div>
+    <v-dialog v-model="dialog">
+      <TopicForm></TopicForm>
+    </v-dialog>
   </div>
 </template>
 
 <script>
-import firebase from "firebase";
+import TopicForm from "@/components/TopicForm.vue";
 export default {
+  props: {
+    topic: {
+      type: Object,
+      default: null
+    },
+    topics: {
+      type: Array,
+      default: () => []
+    }
+  },
+  components: {
+    TopicForm
+  },
   data() {
     return {
-      topic: null,
-      topics: []
+      dialog: false
     };
-  },
-  created() {
-    console.log(this.$vuetify);
-    this.fetchTopics();
   },
   methods: {
     clickTopic(topic) {
@@ -47,41 +58,7 @@ export default {
         "border-left": `4px solid ${this.$vuetify.theme.currentTheme.primary}`,
         color: this.$vuetify.theme.currentTheme.primary
       };
-      this.topic = topic;
-    },
-    fetchTopics() {
-      firebase.auth().onAuthStateChanged(user => {
-        firebase
-          .firestore()
-          .collection("topicUser")
-          .where("userId", "==", user.uid)
-          .get()
-          .then(snapshot => {
-            if (snapshot.size === 0) {
-              return;
-            }
-            const topicIds = [];
-            snapshot.forEach(topicUser =>
-              topicIds.push(topicUser.data().topicId)
-            );
-            return firebase
-              .firestore()
-              .collection("topics")
-              .where(firebase.firestore.FieldPath.documentId(), "in", topicIds)
-              .get();
-          })
-          .then(snapshot => {
-            if (!snapshot) {
-              return;
-            }
-            snapshot.forEach(topic => {
-              const data = topic.data();
-              data.class = "topic";
-              data.style = {};
-              this.topics.push(data);
-            });
-          });
-      });
+      this.$emit("update:topic", topic);
     }
   }
 };

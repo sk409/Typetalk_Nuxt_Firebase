@@ -4,18 +4,9 @@
       <v-card-title>新規登録</v-card-title>
       <v-card-text>
         <v-form>
-          <v-text-field v-model="username" label="ユーザ名"></v-text-field>
-          <v-text-field
-            v-model="email"
-            type="email"
-            label="メールアドレス"
-          ></v-text-field>
-          <v-text-field
-            v-model="password"
-            autocomplete
-            type="password"
-            label="パスワード"
-          ></v-text-field>
+          <v-text-field v-model="name" label="ユーザ名"></v-text-field>
+          <v-text-field v-model="email" type="email" label="メールアドレス"></v-text-field>
+          <v-text-field v-model="password" autocomplete type="password" label="パスワード"></v-text-field>
         </v-form>
       </v-card-text>
       <v-card-actions>
@@ -26,27 +17,23 @@
 </template>
 
 <script>
-import firebase from "firebase";
+import { userService } from "@/assets/js/services.js";
 export default {
   layout: "guest",
   data() {
     return {
-      username: "",
+      name: "",
       email: "",
       password: ""
     };
   },
   methods: {
     register() {
-      firebase
-        .auth()
-        .createUserWithEmailAndPassword(this.email, this.password)
+      userService
+        .registerWithEmailAndPassword(this.email, this.password, this.name)
         .then(response => {
-          response.user
-            .updateProfile({ displayName: this.username })
-            .then(response => {
-              this.$router.push(this.$routes.root);
-            });
+          console.log(response);
+          this.$router.push(this.$routes.root);
         });
     }
   }

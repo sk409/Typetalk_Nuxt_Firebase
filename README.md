@@ -1,10 +1,10 @@
-# Chat_Nuxt_Firebase
+# Typetalk
 
 > My cat&#39;s meow Nuxt.js project
 
 ## Build Setup
 
-``` bash
+```bash
 # install dependencies
 $ npm install
 

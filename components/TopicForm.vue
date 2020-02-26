@@ -13,7 +13,7 @@
 </template>
 
 <script>
-import firebase from "firebase";
+import { topicService, userService } from "@/assets/js/services.js";
 let user = null;
 export default {
   data() {
@@ -24,31 +24,11 @@ export default {
     };
   },
   created() {
-    firebase.auth().onAuthStateChanged(u => {
-      user = u;
-    });
+    userService.current().then(u => (user = u));
   },
   methods: {
     create() {
-      firebase
-        .firestore()
-        .collection("topics")
-        .add({
-          name: this.name
-        })
-        .then(response => {
-          const topicId = response.id;
-          firebase
-            .firestore()
-            .collection("topicUser")
-            .add({
-              topicId,
-              userId: user.uid
-            })
-            .then(response => {
-              this.$emit("created", topicId);
-            });
-        });
+      topicService.save(this.name, user.id);
     }
   }
 };

@@ -1,4 +1,5 @@
 import firebase from "firebase";
+import Vue from "vue";
 
 var firebaseConfig = {
   apiKey: process.env.firebase_api_key,
@@ -12,3 +13,5 @@ var firebaseConfig = {
 };
 // Initialize Firebase
 firebase.initializeApp(firebaseConfig);
+
+Vue.prototype.$db = firebase.firestore();
