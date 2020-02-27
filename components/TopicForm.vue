@@ -13,7 +13,11 @@
 </template>
 
 <script>
-import { topicService, userService } from "@/assets/js/services.js";
+import {
+  topicService,
+  topicUserService,
+  userService
+} from "@/assets/js/services.js";
 let user = null;
 export default {
   data() {
@@ -28,7 +32,12 @@ export default {
   },
   methods: {
     create() {
-      topicService.save(this.name, user.id);
+      topicService
+        .save(this.name)
+        .then(topic => {
+          return topicUserService.save(topic.id, user.id);
+        })
+        .then(topicUser => {});
     }
   }
 };

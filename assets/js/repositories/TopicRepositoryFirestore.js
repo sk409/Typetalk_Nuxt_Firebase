@@ -1,13 +1,16 @@
 import firebase from "firebase";
-import FirestoreRepository from "@/assets/js/repositories/FirestoreRepository.js";
+import RepositoryFirestore from "@/assets/js/repositories/RepositoryFirestore.js";
 
 const path = "topics";
 
-export default class TopicRepositoryFirestore extends FirestoreRepository {
+export default class TopicRepositoryFirestore extends RepositoryFirestore {
 
-  findByUserId(userId) {
+  findByIds(ids) {
     return new Promise(resolve => {
-      firebase.firestore().collection(path).where("userIds", "array-contains", userId).get().then(snapshot => {
+      if (ids.length === 0) {
+        resolve([]);
+      }
+      firebase.firestore().collection(path).where(firebase.firestore.FieldPath.documentId(), "in", ids).get().then(snapshot => {
         const topics = [];
         snapshot.forEach(topic => {
           topics.push(this.convert(topic));
@@ -17,11 +20,10 @@ export default class TopicRepositoryFirestore extends FirestoreRepository {
     });
   }
 
-  save(name, userId) {
+  save(name) {
     return new Promise(resolve => {
       const topic = {
         name,
-        userIds: [userId]
       };
       firebase
         .firestore()

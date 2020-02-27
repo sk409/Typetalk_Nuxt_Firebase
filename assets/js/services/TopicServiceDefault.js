@@ -4,12 +4,12 @@ import {
 
 export default class TopicServiceDefault {
 
-  findByUserId(userId) {
-    return topicRepository.findByUserId(userId);
+  findByIds(ids) {
+    return topicRepository.findByIds(ids);
   }
 
-  save(name, userId) {
-    return topicRepository.save(name, userId);
+  save(name) {
+    return topicRepository.save(name);
   }
 
 }

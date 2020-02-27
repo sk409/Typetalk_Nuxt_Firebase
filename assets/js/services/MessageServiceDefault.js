@@ -4,16 +4,16 @@ import {
 
 export default class MessageServiceDefault {
 
-  findByTopicId(topicId) {
-    return messageRepository.findByTopicId(topicId);
+  findNextMessages(topicId, userId, startAfter, limit) {
+    return messageRepository.findNextMessages(topicId, userId, startAfter, limit);
   }
 
-  findByUserId(userId) {
-    return messageRepository.findByUserId(userId);
+  findByTopicIdAndUserId(topicId, userId) {
+    return messageRepository.findByTopicIdAndUserId(topicId, userId);
   }
 
-  save(userId, message) {
-    return messageRepository.save(userId, message);
+  save(topicId, userId, text) {
+    return messageRepository.save(topicId, userId, text);
   }
 
 }

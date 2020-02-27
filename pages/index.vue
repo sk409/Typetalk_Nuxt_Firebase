@@ -38,6 +38,7 @@ import { messageRepository } from "@/assets/js/repositories.js";
 import {
   messageService,
   topicService,
+  topicUserService,
   userService
 } from "@/assets/js/services.js";
 let user = null;
@@ -103,56 +104,40 @@ export default {
       this.toolname = tool.name;
     },
     fetchMessages() {
-      if (!this.topic) {
-        return;
-      }
-      const messages = [];
-      firebase
-        .firestore()
-        .collection("messages")
-        .where("topicId", "==", this.topic.id)
-        .get()
-        .then(snapshot => {
-          if (snapshot.size === 0) {
-            return;
-          }
-          snapshot.forEach(message => {
-            messages.push(this.$convert(message));
-          });
-          const userIds = messages.map(message => message.userId);
-          return firebase
-            .firestore()
-            .collection("users")
-            .where("uid", "in", userIds)
-            .get();
-        })
-        .then(snapshot => {
-          if (!snapshot) {
-            return;
-          }
-          const users = {};
-          snapshot.forEach(doc => {
-            const user = this.$convert(doc);
-            users[user.uid] = user;
-          });
-          messages.forEach(message => {
-            message.user = users[message.userId];
-          });
+      messageService
+        .findByTopicIdAndUserId(this.topic.id, user.id)
+        .then(messages => {
           this.messages = messages;
         });
     },
     fetchTopics() {
-      topicService.findByUserId(user.id).then(topics => {
-        this.topics = topics;
-        messageService.findByTopicId(topics[0].id);
-      });
+      topicUserService
+        .findByUserId(user.id)
+        .then(topicUsers => {
+          const topicIds = topicUsers.map(topicUser => topicUser.topicId);
+          return topicService.findByIds(topicIds);
+        })
+        .then(topics => {
+          topics.forEach(topic => {
+            topic.class = {};
+            topic.style = {};
+          });
+          this.topics = topics;
+          // TEST
+          // messageService
+          //   .findByTopicIdAndUserId(topics[0].id, user.id)
+          //   .then(messages => {
+          //     messageService
+          //       .findNextMessages(topics[0].id, user.id, messages[0].id, 10)
+          //       .then(messages => {
+          //         console.log(messages);
+          //       });
+          //   });
+          //
+        });
     },
     sendMessage(text) {
-      messageService.save(user.id, {
-        text,
-        topicId: this.topic.id,
-        userId: user.uid
-      });
+      messageService.save(this.topic.id, user.id, text);
     },
     toolClass(tool, index) {
       if (this.toolname === tool.name) {

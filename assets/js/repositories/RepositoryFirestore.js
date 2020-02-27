@@ -1,4 +1,4 @@
-export default class FirestoreRepository {
+export default class RepositoryFirestore {
   convert(doc) {
     const data = doc.data();
     data.id = doc.id;

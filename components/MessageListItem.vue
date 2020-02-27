@@ -1,6 +1,6 @@
 <template>
   <div v-if="message">
-    <div>{{ message.user.name }}</div>
+    <!-- <div>{{ message.user.name }}</div> -->
     <div>{{ message.text }}</div>
   </div>
 </template>

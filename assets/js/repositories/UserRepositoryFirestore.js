@@ -1,9 +1,9 @@
 import firebase from "firebase";
-import FirestoreRepository from "@/assets/js/repositories/FirestoreRepository.js";
+import RepositoryFirestore from "@/assets/js/repositories/RepositoryFirestore.js";
 
 const path = "users";
 
-export default class UserRepositoryFirestore extends FirestoreRepository {
+export default class UserRepositoryFirestore extends RepositoryFirestore {
 
   current() {
     return new Promise(resolve => {
