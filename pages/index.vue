@@ -19,13 +19,20 @@
     </div>
     <div class="h-100 utility">
       <div v-if="toolname === 'topics'">
-        <TopicList :topic.sync="topic" :topics="topics"></TopicList>
+        <TopicList :topic.sync="topic" :topics="topics" @created-topic="createdTopic"></TopicList>
       </div>
     </div>
-    <div v-if="topic" class="h-100 messages white position-relative">
-      <MessageList :messages="messages"></MessageList>
-      <MessageInput class="w-100 position-absolute left-0 bottom-0" @send="sendMessage"></MessageInput>
+    <div v-if="topic" class="d-flex flex-column h-100 messages white">
+      <MessageList
+        class="flex-fill"
+        :first-message="firstMessage"
+        :messages="messages"
+        :scroll-to-bottom.sync="messageListScrollToBottom"
+        @load-messages="fetchMessages"
+      ></MessageList>
+      <MessageInput class="w-100" @send="sendMessage"></MessageInput>
     </div>
+    <SnackbarView :notification="notification" :visible.sync="snackbar"></SnackbarView>
   </div>
 </template>
 
@@ -33,6 +40,7 @@
 import firebase from "firebase";
 import MessageInput from "@/components/MessageInput.vue";
 import MessageList from "@/components/MessageList.vue";
+import SnackbarView from "@/components/SnackbarView.vue";
 import TopicList from "@/components/TopicList.vue";
 import { messageRepository } from "@/assets/js/repositories.js";
 import {
@@ -47,11 +55,16 @@ export default {
   components: {
     MessageInput,
     MessageList,
+    SnackbarView,
     TopicList
   },
   data() {
     return {
+      firstMessage: null,
+      messageListScrollToBottom: false,
       messages: [],
+      notification: "",
+      snackbar: false,
       toolIconStyle: {
         "font-size": "30px"
       },
@@ -96,6 +109,8 @@ export default {
   },
   watch: {
     topic() {
+      this.messages = [];
+      this.fetchFirstMessage();
       this.fetchMessages();
     }
   },
@@ -103,12 +118,43 @@ export default {
     clickTool(tool) {
       this.toolname = tool.name;
     },
+    createdTopic(topic) {
+      this.topics.push(topic);
+      this.notification = `トピック「${topic.name}」を作成しました`;
+      console.log("OOO");
+      console.log(this.snackbar);
+      this.snackbar = true;
+      console.log(this.snackbar);
+    },
+    fetchFirstMessage() {
+      const option = {
+        where: [
+          ["userId", "==", user.id],
+          ["topicId", "==", this.topic.id]
+        ],
+        orderBy: "createdAt",
+        limit: 1
+      };
+      messageService.findOne(option).then(firstMessage => {
+        this.firstMessage = firstMessage;
+      });
+    },
     fetchMessages() {
-      messageService
-        .findByTopicIdAndUserId(this.topic.id, user.id)
-        .then(messages => {
-          this.messages = messages;
-        });
+      const option = {
+        where: [
+          ["userId", "==", user.id],
+          ["topicId", "==", this.topic.id]
+        ],
+        orderBy: "createdAt desc",
+        limit: 10
+      };
+      if (this.messages.length !== 0) {
+        option.startAfter = this.messages[0].id;
+      }
+      messageService.findAll(option).then(messages => {
+        this.messageListScrollToBottom = this.messages.length === 0;
+        this.messages = messages.reverse().concat(this.messages);
+      });
     },
     fetchTopics() {
       topicUserService
@@ -123,17 +169,6 @@ export default {
             topic.style = {};
           });
           this.topics = topics;
-          // TEST
-          // messageService
-          //   .findByTopicIdAndUserId(topics[0].id, user.id)
-          //   .then(messages => {
-          //     messageService
-          //       .findNextMessages(topics[0].id, user.id, messages[0].id, 10)
-          //       .then(messages => {
-          //         console.log(messages);
-          //       });
-          //   });
-          //
         });
     },
     sendMessage(text) {

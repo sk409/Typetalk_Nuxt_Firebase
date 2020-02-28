@@ -32,12 +32,18 @@ export default {
   },
   methods: {
     create() {
+      let topic = null;
+      this.loading = true;
       topicService
         .save(this.name)
-        .then(topic => {
+        .then(response => {
+          topic = response;
           return topicUserService.save(topic.id, user.id);
         })
-        .then(topicUser => {});
+        .then(topicUser => {
+          this.loading = false;
+          this.$emit("created", topic);
+        });
     }
   }
 };

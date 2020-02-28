@@ -1,7 +1,7 @@
 <template>
-  <div v-if="message">
+  <div class="message" v-if="message">
     <!-- <div>{{ message.user.name }}</div> -->
-    <div>{{ message.text }}</div>
+    <pre>{{ message.text }}</pre>
   </div>
 </template>
 
@@ -15,3 +15,9 @@ export default {
   }
 };
 </script>
+
+<style>
+.message {
+  height: 100px;
+}
+</style>

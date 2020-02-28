@@ -28,6 +28,7 @@ export default {
   methods: {
     send() {
       this.$emit("send", this.message);
+      this.message = [];
     }
   }
 };

@@ -1,6 +1,6 @@
 <template>
   <div>
-    <v-app-bar app color="primary" dark flat>
+    <v-app-bar app color="primary" dark flat :height="height">
       <v-menu offset-y>
         <template v-slot:activator="{on}">
           <v-btn icon small v-on="on" class="white primary--text">
@@ -17,6 +17,12 @@
 
 <script>
 export default {
+  props: {
+    height: {
+      type: Number,
+      default: 64
+    }
+  },
   data() {
     return {
       notification: "",

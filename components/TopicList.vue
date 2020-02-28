@@ -18,7 +18,7 @@
       <span class="subtitle-1">{{ topic.name }}</span>
     </div>
     <v-dialog v-model="dialog">
-      <TopicForm></TopicForm>
+      <TopicForm @created="createdTopic"></TopicForm>
     </v-dialog>
   </div>
 </template>
@@ -59,6 +59,10 @@ export default {
         color: this.$vuetify.theme.currentTheme.primary
       };
       this.$emit("update:topic", topic);
+    },
+    createdTopic(topic) {
+      this.dialog = false;
+      this.$emit("created-topic", topic);
     }
   }
 };

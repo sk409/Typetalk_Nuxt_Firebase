@@ -1,7 +1,7 @@
 <template>
-  <v-app>
-    <Navbar></Navbar>
-    <v-content>
+  <v-app ref="app">
+    <Navbar :height="navbarHeight"></Navbar>
+    <v-content :style="contentStyle">
       <nuxt />
     </v-content>
   </v-app>
@@ -13,6 +13,22 @@ export default {
   middleware: "auth",
   components: {
     Navbar
+  },
+  data() {
+    return {
+      navbarHeight: 64,
+      contentHeight: 0
+    };
+  },
+  computed: {
+    contentStyle() {
+      return {
+        height: this.contentHeight + "px"
+      };
+    }
+  },
+  mounted() {
+    this.contentHeight = this.$refs.app.$el.clientHeight - this.navbarHeight;
   }
 };
 </script>
